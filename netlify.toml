@@ -1,0 +1,11 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Runs daily at 12:00 UTC (7am US Central, 8am US Eastern)
+# Adjust the hour to match your timezone
+[functions."scheduled-assign"]
+  schedule = "0 12 * * *"

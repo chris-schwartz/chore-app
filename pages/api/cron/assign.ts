@@ -4,31 +4,27 @@ import { sendNotifications } from '../../../lib/notifications'
 import { getServiceClient } from '../../../lib/supabase'
 import { format } from 'date-fns'
 
+// This route is for manual triggering from the admin panel only.
+// The actual daily cron runs via netlify/functions/scheduled-assign.ts
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET' && req.method !== 'POST') return res.status(405).end()
 
-  // Verify secret (Vercel cron sends it as Authorization header, admin panel sends it too)
   const auth = req.headers.authorization
-  const isVercelCron = req.headers['x-vercel-cron-signature'] !== undefined
   const isAdmin = auth === `Bearer ${process.env.ADMIN_PASSWORD}`
-  const isCron = auth === `Bearer ${process.env.CRON_SECRET}`
+  const isCron  = auth === `Bearer ${process.env.CRON_SECRET}`
 
-  if (!isVercelCron && !isAdmin && !isCron) {
+  if (!isAdmin && !isCron) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
   try {
-    // 1. Assign chores for today
     const result = await runDailyScheduler()
 
-    // 2. Fetch today's assignments per daughter and send notifications
     const db = getServiceClient()
     const today = format(new Date(), 'yyyy-MM-dd')
     const notifyMethod = (process.env.NOTIFY_METHOD as any) || 'email'
 
-    const daughters = ['daughter1', 'daughter2'] as const
-
-    for (const daughter of daughters) {
+    for (const daughter of ['daughter1', 'daughter2'] as const) {
       const { data } = await db
         .from('assignments')
         .select('chore:chores(name, description)')
