@@ -62,16 +62,17 @@ export async function runDailyScheduler(targetDate?: Date) {
   }
 
   // Upsert (ignore duplicates if cron runs twice)
-  const { error: insertError, count } = await db
+  const { error: insertError, data: insertedRows } = await db
     .from('assignments')
     .upsert(assignmentsToCreate, {
       onConflict: 'chore_id,daughter,assigned_date',
       ignoreDuplicates: true,
     })
-    .select('id', { count: 'exact', head: true })
+    .select('id')
 
   if (insertError) throw insertError
 
+  const count = insertedRows?.length ?? 0
   console.log(`[Scheduler] Created ${count} assignments`)
   return { created: count }
 }

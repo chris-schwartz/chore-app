@@ -33,8 +33,8 @@ export default function AdminPage() {
   const emptyForm = {
     name: '',
     description: '',
-    daughter: 'daughter1' as const,
-    frequency: 'daily' as const,
+    daughter: 'daughter1' as Chore['daughter'],
+    frequency: 'daily' as Chore['frequency'],
     day_of_week: 1,
     day_of_month: 1,
   }
